@@ -46,6 +46,9 @@ public class MainActivityFragment extends Fragment {
     // [START auth_variable_references]
     private static final int REQUEST_OAUTH = 1;
 
+    private static final int REQUEST_GOAL = 2;
+
+
     /**
      * Track whether an authorization activity is stacking over the current activity, i.e. when
      * a known auth error is being resolved, such as showing the account chooser or presenting a
@@ -94,16 +97,22 @@ public class MainActivityFragment extends Fragment {
 
         mFitChart = (FitChart) rootView.findViewById(R.id.chart);
         mTextViewSteps = (TextView) rootView.findViewById(R.id.text_view_steps);
-        mButtonSetting = (ImageButton)rootView.findViewById(R.id.image_button_setting);
+        mButtonSetting = (ImageButton) rootView.findViewById(R.id.image_button_setting);
 
+        mButtonSetting.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                startActivityForResult(new Intent(getActivity(), SettingActivity.class), REQUEST_GOAL);
+            }
+        });
         mInitSteps = Utility.getInitSteps(getActivity());
 
         mFitChart.setMaxValue(Utility.getGoal(getActivity()));
 
-        if(mInitSteps>0){
+        if (mInitSteps > 0) {
             mFitChart.setValue(mInitSteps);
             mTextViewSteps.setText(String.valueOf(mInitSteps));
-        }else {
+        } else {
             mFitChart.setValue(0);
             mTextViewSteps.setText("0");
         }
@@ -240,7 +249,7 @@ public class MainActivityFragment extends Fragment {
                     Log.i(TAG, "Detected DataPoint field: " + field.getName());
                     Log.i(TAG, "Detected DataPoint value: " + val);
 
-                    if(mInitSteps<0){
+                    if (mInitSteps < 0) {
                         Utility.saveInitSteps(getActivity(), val.asInt());
                         mInitSteps = val.asInt();
                     }
@@ -331,12 +340,19 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_OAUTH) {
+            Log.v(TAG, "blabla");
             authInProgress = false;
             if (resultCode == Activity.RESULT_OK) {
                 // Make sure the app is not already connected or attempting to connect
                 if (!mClient.isConnecting() && !mClient.isConnected()) {
                     mClient.connect();
                 }
+            }
+        } else if (requestCode == REQUEST_GOAL) {
+            if (resultCode == Activity.RESULT_OK) {
+                int goal = Utility.getGoal(getActivity());
+                mFitChart.setMaxValue(goal);
+                Log.v(TAG, "new goal == "+String.valueOf(goal));
             }
         }
     }

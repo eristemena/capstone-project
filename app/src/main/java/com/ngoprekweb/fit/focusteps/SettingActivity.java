@@ -1,5 +1,6 @@
 package com.ngoprekweb.fit.focusteps;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -38,6 +39,7 @@ public class SettingActivity extends AppCompatActivity {
     }
 
     public void onClickBack(View view){
+        setResult(Activity.RESULT_OK);
         finish();
     }
 }
