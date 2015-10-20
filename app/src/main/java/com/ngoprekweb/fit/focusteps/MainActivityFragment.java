@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -73,6 +74,8 @@ public class MainActivityFragment extends Fragment {
     private int mInitSteps;
     private int mSteps;
 
+    private ImageButton mButtonSetting;
+
     public MainActivityFragment() {
     }
 
@@ -93,6 +96,7 @@ public class MainActivityFragment extends Fragment {
 
         mFitChart = (FitChart) rootView.findViewById(R.id.chart);
         mTextViewSteps = (TextView) rootView.findViewById(R.id.text_view_steps);
+        mButtonSetting = (ImageButton)rootView.findViewById(R.id.image_button_setting);
 
         mInitSteps = getInitSteps();
 
@@ -105,8 +109,6 @@ public class MainActivityFragment extends Fragment {
             mFitChart.setValue(0);
             mTextViewSteps.setText("0");
         }
-
-
 
         buildFitnessClient();
 
