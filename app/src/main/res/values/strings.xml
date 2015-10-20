@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Focusteps</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="saved_init_pref">SAVED_INIT_PREF</string>
     <string name="action_settings">Settings</string>
 </resources>
