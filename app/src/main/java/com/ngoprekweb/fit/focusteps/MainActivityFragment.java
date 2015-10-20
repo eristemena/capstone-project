@@ -1,10 +1,8 @@
 package com.ngoprekweb.fit.focusteps;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -98,9 +96,9 @@ public class MainActivityFragment extends Fragment {
         mTextViewSteps = (TextView) rootView.findViewById(R.id.text_view_steps);
         mButtonSetting = (ImageButton)rootView.findViewById(R.id.image_button_setting);
 
-        mInitSteps = getInitSteps();
+        mInitSteps = Utility.getInitSteps(getActivity());
 
-        mFitChart.setMaxValue(1000);
+        mFitChart.setMaxValue(Utility.getGoal(getActivity()));
 
         if(mInitSteps>0){
             mFitChart.setValue(mInitSteps);
@@ -243,7 +241,7 @@ public class MainActivityFragment extends Fragment {
                     Log.i(TAG, "Detected DataPoint value: " + val);
 
                     if(mInitSteps<0){
-                        saveInitSteps(val.asInt());
+                        Utility.saveInitSteps(getActivity(), val.asInt());
                         mInitSteps = val.asInt();
                     }
 
@@ -310,18 +308,6 @@ public class MainActivityFragment extends Fragment {
                     }
                 });
         // [END unregister_data_listener]
-    }
-
-    private int getInitSteps(){
-        SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
-        return sharedPref.getInt(getString(R.string.saved_init_pref),-1);
-    }
-
-    private void saveInitSteps(int newSteps){
-        SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putInt(getString(R.string.saved_init_pref), newSteps);
-        editor.commit();
     }
 
     @Override
