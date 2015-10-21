@@ -19,7 +19,7 @@ public class SettingActivityFragment extends Fragment {
     private TextView mTextViewProgress;
 
     private static final int MAX_PROGRESS = 100;
-    private static final int SCALE_PROGRESS = 500;
+    private static final int SCALE_PROGRESS = 20;
 
     public SettingActivityFragment() {
     }

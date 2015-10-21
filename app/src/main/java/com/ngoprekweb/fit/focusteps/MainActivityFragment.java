@@ -3,6 +3,7 @@ package com.ngoprekweb.fit.focusteps;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -14,6 +15,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.Scopes;
@@ -35,7 +38,8 @@ import com.txusballesteros.widgets.FitChart;
 
 import java.util.concurrent.TimeUnit;
 
-import jp.wasabeef.glide.transformations.BlurTransformation;
+import jp.wasabeef.blurry.internal.Blur;
+import jp.wasabeef.blurry.internal.BlurFactor;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -76,6 +80,11 @@ public class MainActivityFragment extends Fragment {
     private int mSteps;
 
     private ImageButton mButtonSetting;
+    private ImageView mImageViewBg;
+
+    private int mGoal;
+
+    private Bitmap mBitmap;
 
     public MainActivityFragment() {
     }
@@ -85,11 +94,7 @@ public class MainActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        ImageView iv = (ImageView) rootView.findViewById(R.id.image_view_background);
-        Glide.with(getActivity()).load("https://unsplash.it/360/640/?random&t=4")
-                .bitmapTransform(new BlurTransformation(getActivity(), 1))
-                .into(iv)
-        ;
+        mImageViewBg = (ImageView) rootView.findViewById(R.id.image_view_background);
 
         if (savedInstanceState != null) {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
@@ -99,7 +104,7 @@ public class MainActivityFragment extends Fragment {
         mTextViewSteps = (TextView) rootView.findViewById(R.id.text_view_steps);
         mButtonSetting = (ImageButton) rootView.findViewById(R.id.image_button_setting);
 
-        mButtonSetting.setOnClickListener(new View.OnClickListener(){
+        mButtonSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivityForResult(new Intent(getActivity(), SettingActivity.class), REQUEST_GOAL);
@@ -107,7 +112,8 @@ public class MainActivityFragment extends Fragment {
         });
         mInitSteps = Utility.getInitSteps(getActivity());
 
-        mFitChart.setMaxValue(Utility.getGoal(getActivity()));
+        mGoal = Utility.getGoal(getActivity());
+        mFitChart.setMaxValue(mGoal);
 
         if (mInitSteps > 0) {
             mFitChart.setValue(mInitSteps);
@@ -117,10 +123,34 @@ public class MainActivityFragment extends Fragment {
             mTextViewSteps.setText("0");
         }
 
+        int radius = getBlurRadius();
+
+        Log.v(TAG, "oncreate radius=" + String.valueOf(radius));
+
+        Glide.with(getActivity())
+                .load("https://unsplash.it/360/640/?image=14")
+                .asBitmap().into(new SimpleTarget<Bitmap>(Utility.IMAGE_WIDTH, Utility.IMAGE_HEIGHT) {
+            @Override
+            public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                // save original bitmap
+                mBitmap = resource;
+
+                BlurFactor bf = new BlurFactor();
+                bf.radius = 25;
+                bf.width = Utility.IMAGE_WIDTH;
+                bf.height = Utility.IMAGE_HEIGHT;
+
+                Bitmap blur = Blur.rs(getActivity(), resource, bf);
+                mImageViewBg.setImageBitmap(blur);
+            }
+        })
+        ;
+
         buildFitnessClient();
 
         return rootView;
     }
+
 
     // [START auth_build_googleapiclient_beginning]
 
@@ -262,6 +292,8 @@ public class MainActivityFragment extends Fragment {
 
                             mFitChart.setValue(mSteps);
                             mTextViewSteps.setText(String.valueOf(mSteps));
+                            updateBlurry();
+
                         }
                     });
                 }
@@ -287,6 +319,29 @@ public class MainActivityFragment extends Fragment {
                     }
                 });
         // [END register_data_listener]
+    }
+
+    private int getBlurRadius() {
+        double g = 25 - ((double) mSteps / (double) mGoal) * 25;
+        int radius = (int) g;
+        if (radius <= 0) radius = 1;
+        if (radius > 25) radius = 25;
+
+        return radius;
+    }
+
+    private void updateBlurry() {
+        int radius = getBlurRadius();
+
+        if (mBitmap != null) {
+            BlurFactor bf = new BlurFactor();
+            bf.radius = radius;
+            bf.width = Utility.IMAGE_WIDTH;
+            bf.height = Utility.IMAGE_HEIGHT;
+
+            Bitmap blur = Blur.rs(getActivity(), mBitmap, bf);
+            mImageViewBg.setImageBitmap(blur);
+        }
     }
 
     /**
@@ -351,8 +406,14 @@ public class MainActivityFragment extends Fragment {
         } else if (requestCode == REQUEST_GOAL) {
             if (resultCode == Activity.RESULT_OK) {
                 int goal = Utility.getGoal(getActivity());
-                mFitChart.setMaxValue(goal);
-                Log.v(TAG, "new goal == "+String.valueOf(goal));
+                mGoal = goal;
+
+                mFitChart.setMaxValue(mGoal);
+                mFitChart.setValue(mSteps);
+
+                updateBlurry();
+
+                Log.v(TAG, "new goal == " + String.valueOf(goal));
             }
         }
     }

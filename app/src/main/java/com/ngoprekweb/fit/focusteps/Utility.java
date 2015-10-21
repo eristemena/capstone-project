@@ -7,6 +7,9 @@ import android.preference.PreferenceManager;
 public class Utility {
     private static final int DEFAULT_GOAL = 1000;
 
+    public static final int IMAGE_WIDTH=360;
+    public static final int IMAGE_HEIGHT=640;
+
     public static int getGoal(Context context){
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         return sharedPref.getInt(context.getString(R.string.saved_goal_pref), DEFAULT_GOAL);
